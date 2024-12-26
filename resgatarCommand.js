@@ -1,11 +1,12 @@
+// resgatarCommand.js
 const fs = require('fs');
-const userPointsFile = './userPoints.json'; // Caminho do arquivo de pontos
-const cooldownsFile = './cooldowns.json'; // Caminho para armazenar os tempos de cooldown
+const userPointsFile = './userPoints.json';
+const cooldownsFile = './cooldowns.json';
 
 let userPoints = {};
 let cooldowns = {};
 
-// Carrega os pontos dos usuários e os tempos de cooldown
+// Carrega os dados
 const loadData = () => {
   if (fs.existsSync(userPointsFile)) {
     userPoints = JSON.parse(fs.readFileSync(userPointsFile, 'utf-8'));
@@ -20,16 +21,16 @@ const loadData = () => {
   }
 };
 
-// Comando /gf
-const gfCommand = {
+const resgatarCommand = {
   data: {
-    name: 'gf',
+    name: 'resgatar',
     description: 'Ganha de 0 a 5 snowflakes/pontos aleatórios. (Usável a cada 12 horas)',
   },
+
   async execute(interaction) {
     const userId = interaction.user.id;
     const currentTime = Date.now();
-    const cooldownTime = 12 * 60 * 60 * 1000; // 12 horas em milissegundos
+    const cooldownTime = 12 * 60 * 60 * 1000; // 12 horas
 
     // Verifica se o usuário já usou o comando nas últimas 12 horas
     if (cooldowns[userId] && currentTime - cooldowns[userId] < cooldownTime) {
@@ -38,11 +39,11 @@ const gfCommand = {
       const minutesLeft = Math.floor((timeLeft % 3600) / 60);
       return await interaction.reply({
         content: `Você já usou o comando recentemente! Tente novamente em ${hoursLeft} horas e ${minutesLeft} minutos.`,
-        ephemeral: true, // Resposta só para o usuário
+        ephemeral: true,
       });
     }
 
-    // Gera um número aleatório de pontos entre 0 e 5
+    // Gera um número aleatório de pontos
     const randomPoints = Math.floor(Math.random() * 6);
 
     // Atualiza os pontos do usuário
@@ -51,7 +52,7 @@ const gfCommand = {
     // Atualiza o tempo de cooldown para o usuário
     cooldowns[userId] = currentTime;
 
-    // Salva os dados no arquivo
+    // Salva os dados
     fs.writeFileSync(userPointsFile, JSON.stringify(userPoints, null, 2));
     fs.writeFileSync(cooldownsFile, JSON.stringify(cooldowns, null, 2));
 
@@ -62,5 +63,7 @@ const gfCommand = {
   },
 };
 
-// Chama o carregamento dos dados assim que o bot iniciar
+// Chama o carregamento dos dados
 loadData();
+
+module.exports = resgatarCommand;
