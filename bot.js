@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path'); // Importa o módulo path para garantir compatibilidade multiplataforma
 const { Client, GatewayIntentBits, REST } = require('discord.js');
 const { Routes } = require('discord-api-types/v9');
 require('dotenv').config(); // Carrega as variáveis do arquivo .env
@@ -17,14 +18,23 @@ const client = new Client({
 // Inicialize o objeto client.commands
 client.commands = new Map();
 
+// Caminho absoluto para o diretório de comandos
+const commandsPath = path.join(__dirname, 'comandos');
+
+// Verifica se o diretório de comandos existe
+if (!fs.existsSync(commandsPath)) {
+  console.error('Diretório de comandos não encontrado!');
+  process.exit(1);  // Termina o processo com erro
+}
+
 // Comandos a serem registrados
 const commands = [];
-const commandFiles = fs.readdirSync('./comandos').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 // Verifica e carrega os comandos sem duplicação de nome
 const commandNames = new Set();
 for (const file of commandFiles) {
-  const command = require(`./comandos/${file}`);
+  const command = require(path.join(commandsPath, file)); // Carrega o comando usando o caminho correto
   if (command.data) {
     if (commandNames.has(command.data.name)) {
       console.error(`Erro: O comando ${command.data.name} já existe!`);
